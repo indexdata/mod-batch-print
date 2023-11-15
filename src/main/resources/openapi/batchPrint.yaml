@@ -1,0 +1,224 @@
+openapi: 3.0.0
+info:
+  title: Batch printing
+  version: v1
+paths:
+  /print/entries:
+    parameters:
+      - $ref: headers/okapi-permissions.yaml
+      - $ref: headers/okapi-tenant.yaml
+      - $ref: headers/okapi-token.yaml
+      - $ref: headers/okapi-url.yaml
+      - $ref: headers/okapi-user.yaml
+      - $ref: parameters/limit.yaml
+      - $ref: parameters/offset.yaml
+      - $ref: parameters/query.yaml
+    get:
+      description: >
+        Get batch printing entries with optional CQL query.
+        X-Okapi-Permissions must include mod-batch-print.print.read
+      operationId: getPrintEntries
+      responses:
+        "200":
+          description: Print entries
+          content:
+            application/json:
+              schema:
+                $ref: schemas/entries.json
+        "400":
+          $ref: "#/components/responses/trait_400"
+        "404":
+          $ref: "#/components/responses/trait_404"
+        "500":
+          $ref: "#/components/responses/trait_500"
+    post:
+      description: >
+        Create print entry.
+        X-Okapi-Permissions must include mod-batch-print.print.write
+      operationId: postPrintEntry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/entry.json
+      responses:
+        "204":
+          description: Print entry created
+        "400":
+          $ref: "#/components/responses/trait_400"
+        "403":
+          $ref: "#/components/responses/trait_403"
+        "413":
+          $ref: "#/components/responses/trait_413"
+        "500":
+          $ref: "#/components/responses/trait_500"
+  /print/entries/{id}:
+    parameters:
+      - $ref: headers/okapi-permissions.yaml
+      - $ref: headers/okapi-tenant.yaml
+      - $ref: headers/okapi-token.yaml
+      - $ref: headers/okapi-url.yaml
+      - $ref: headers/okapi-user.yaml
+      - in: path
+        name: id
+        required: true
+        description: Print entry identifier
+        schema:
+          type: string
+          format: uuid
+    get:
+      description: >
+        Get print entry by id.
+        X-Okapi-Permissions must include mod-batch-print.print.read
+      operationId: getPrintEntry
+      responses:
+        "200":
+          description: Print entry
+          content:
+            application/json:
+              schema:
+                $ref: schemas/entry.json
+        "400":
+          $ref: "#/components/responses/trait_400"
+        "403":
+          $ref: "#/components/responses/trait_403"
+        "404":
+          $ref: "#/components/responses/trait_404"
+        "500":
+          $ref: "#/components/responses/trait_500"
+    delete:
+      description: >
+        Delete print entry.
+        X-Okapi-Permissions must include mod-batch-print.print.write
+      operationId: deletePrintEntry
+      responses:
+        "204":
+          description: Print entry deleted
+        "400":
+          $ref: "#/components/responses/trait_400"
+        "404":
+          $ref: "#/components/responses/trait_404"
+        "500":
+          $ref: "#/components/responses/trait_500"
+    put:
+      description: >
+        Update print entry.
+        X-Okapi-Permissions must include mod-batch-print.print.write
+      operationId: updatePrintEntry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/entry.json
+      responses:
+        "204":
+          description: Print entry update
+        "400":
+          $ref: "#/components/responses/trait_400"
+        "404":
+          $ref: "#/components/responses/trait_404"
+        "500":
+          $ref: "#/components/responses/trait_500"
+  /mail:
+    parameters:
+      - $ref: headers/okapi-permissions.yaml
+      - $ref: headers/okapi-tenant.yaml
+      - $ref: headers/okapi-token.yaml
+      - $ref: headers/okapi-url.yaml
+      - $ref: headers/okapi-user.yaml
+    post:
+      description: >
+        Send mail to create print entry.
+        X-Okapi-Permissions must include mod-batch-print.print.write
+      operationId: saveMail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: schemas/messageRequest.json
+      responses:
+        "200":
+          description: Print entry created
+          content:
+            application/json:
+              schema:
+                $ref: schemas/messageResponse.json
+        "400":
+          $ref: "#/components/responses/trait_400"
+        "403":
+          $ref: "#/components/responses/trait_403"
+        "500":
+          $ref: "#/components/responses/trait_500"
+  /print/batch-creation:
+    parameters:
+      - $ref: headers/okapi-permissions.yaml
+      - $ref: headers/okapi-tenant.yaml
+      - $ref: headers/okapi-token.yaml
+      - $ref: headers/okapi-url.yaml
+      - $ref: headers/okapi-user.yaml
+    post:
+      description: >
+        Send mail to create print entry.
+        X-Okapi-Permissions must include mod-batch-print.print.write
+      operationId: createBatch
+      responses:
+        "204":
+          description: Print entry created
+        "400":
+          $ref: "#/components/responses/trait_400"
+        "403":
+          $ref: "#/components/responses/trait_403"
+        "500":
+          $ref: "#/components/responses/trait_500"
+components:
+  responses:
+    trait_400:
+      description: Bad request
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Invalid JSON in request
+        application/json:
+          schema:
+            type: object
+            example: {"error":"Invalid JSON in request"}
+    trait_403:
+      description: Forbidden
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Insufficient permissions to access resource
+        application/json:
+          schema:
+            type: object
+            example: {"error":"Insufficient permissions to access resource"}
+    trait_404:
+      description: Not Found
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Identifier 596d9f60-cda3-44d2-a4a1-2f48b7d4d23c not found
+        application/json:
+          schema:
+            type: object
+            example: {"error":"Identifier 596d9f60-cda3-44d2-a4a1-2f48b7d4d23c not found"}
+    trait_413:
+      description: Payload Too Large
+      content:
+        text/plain:
+          schema:
+            type: string
+    trait_500:
+      description: Internal error
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Internal server error, contact administrator
+  schemas:
+    errors:
+      $ref: schemas/errors.json
+
