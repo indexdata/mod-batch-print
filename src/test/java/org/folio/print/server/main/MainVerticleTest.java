@@ -149,6 +149,39 @@ public class MainVerticleTest extends TestBase {
   }
 
   @Test
+  public void testUpdateWithWrongId() {
+    PrintEntry entry = new PrintEntry();
+    entry.setContent("AA");
+    entry.setCreated(ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC));
+    entry.setId(UUID.randomUUID());
+    entry.setType(PrintEntryType.SINGLE);
+    entry.setSortingField("Last,User");
+
+    JsonObject en = JsonObject.mapFrom(entry);
+
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT_1)
+        .header(XOkapiHeaders.PERMISSIONS, permWrite.encode())
+        .contentType(ContentType.JSON)
+        .body(en.encode())
+        .post("/print/entries")
+        .then()
+        .statusCode(204);
+
+
+    entry.setContent("BB");
+    en = JsonObject.mapFrom(entry);
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT_1)
+        .header(XOkapiHeaders.PERMISSIONS, permWrite.encode())
+        .contentType(ContentType.JSON)
+        .body(en.encode())
+        .put("/print/entries/" + UUID.randomUUID())
+        .then()
+        .statusCode(400);
+  }
+
+  @Test
   public void testPostInvalidEntry() {
     PrintEntry entry = new PrintEntry();
     entry.setId(UUID.randomUUID());

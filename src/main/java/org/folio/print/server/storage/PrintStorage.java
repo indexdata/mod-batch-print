@@ -38,11 +38,7 @@ public class PrintStorage {
   private static final Logger log = LogManager.getLogger(PrintStorage.class);
 
   private static final String CREATE_IF_NO_EXISTS = "CREATE TABLE IF NOT EXISTS ";
-
-  private static final String PERM_PREFIX = "mod-batch-print";
-  private static final String PERM_PRINT = "print";
-  private static final String PERM_READ = "read";
-  private static final String PERM_WRITE = "write";
+  private static final String WHERE_BY_ID = " WHERE id = $1";
 
   private final TenantPgPool pool;
 
@@ -103,7 +99,7 @@ public class PrintStorage {
             entry.getType(), entry.getSortingField(), entry.getContent()))
         .map(rowSet -> {
           if (rowSet.rowCount() == 0) {
-            throw new ForbiddenException();
+            throw new EntryException("Failed to create");
           }
           return null;
         });
@@ -132,7 +128,7 @@ public class PrintStorage {
 
   Future<PrintEntry> getEntryWoCheck(UUID id) {
     return pool.preparedQuery(
-            "SELECT * FROM " + printTable + " WHERE id = $1")
+            "SELECT * FROM " + printTable + WHERE_BY_ID)
         .execute(Tuple.of(id))
         .map(rowSet -> {
           RowIterator<Row> iterator = rowSet.iterator();
@@ -155,7 +151,7 @@ public class PrintStorage {
         return Future.failedFuture(new NotFoundException());
       }
       return pool.preparedQuery(
-              "DELETE FROM " + printTable + " WHERE id = $1")
+              "DELETE FROM " + printTable + WHERE_BY_ID)
           .execute(Tuple.of(id))
           .map(res -> {
             if (res.rowCount() == 0) {
@@ -176,7 +172,7 @@ public class PrintStorage {
     return pool.preparedQuery(
             "UPDATE " + printTable
                 + " SET created = $2, type = $3, sorting_field = $4, content = $5"
-                + " WHERE id = $1"
+                + WHERE_BY_ID
         )
         .execute(Tuple.of(entry.getId(), toLocalDateTime(entry.getCreated()),
             entry.getType(), entry.getSortingField(), entry.getContent()))

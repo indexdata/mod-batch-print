@@ -22,10 +22,9 @@ import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.print.server.data.Message;
 import org.folio.print.server.data.PrintEntry;
 import org.folio.print.server.data.PrintEntryType;
-import org.folio.print.server.storage.ForbiddenException;
+import org.folio.print.server.storage.EntryException;
 import org.folio.print.server.storage.NotFoundException;
 import org.folio.print.server.storage.PrintStorage;
-import org.folio.print.server.storage.UserException;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
 
@@ -61,11 +60,9 @@ public class PrintService implements RouterCreator, TenantInitHooks {
     if (cause == null) {
       HttpResponse.responseError(ctx, defaultCode,
           HttpResponseStatus.valueOf(defaultCode).reasonPhrase());
-    } else if (cause instanceof ForbiddenException) {
-      HttpResponse.responseError(ctx, 403, cause.getMessage());
     } else if (cause instanceof NotFoundException) {
       HttpResponse.responseError(ctx, 404, cause.getMessage());
-    } else if (cause instanceof UserException) {
+    } else if (cause instanceof EntryException) {
       HttpResponse.responseError(ctx, 400, cause.getMessage());
     } else {
       HttpResponse.responseError(ctx, defaultCode, cause.getMessage());
@@ -193,7 +190,7 @@ public class PrintService implements RouterCreator, TenantInitHooks {
     PrintEntry entry = body.getJsonObject().mapTo(PrintEntry.class);
     UUID id  = UUID.fromString(params.pathParameter("id").getString());
     if (!id.equals(entry.getId())) {
-      return Future.failedFuture(new UserException("id mismatch"));
+      return Future.failedFuture(new EntryException("id mismatch"));
     }
     return printStorage.updateEntry(entry)
         .map(entity -> {
@@ -208,10 +205,8 @@ public class PrintService implements RouterCreator, TenantInitHooks {
     RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
     RequestParameter queryParameter = params.queryParameter("query");
     String query = queryParameter != null ? queryParameter.getString() : null;
-    RequestParameter limitParameter = params.queryParameter("limit");
-    int limit = limitParameter != null ? limitParameter.getInteger() : 10;
-    RequestParameter offsetParameter = params.queryParameter("offset");
-    int offset = offsetParameter != null ? offsetParameter.getInteger() : 0;
+    int limit = params.queryParameter("limit").getInteger();
+    int offset = params.queryParameter("offset").getInteger();
     return storage.getEntries(ctx.response(), query, offset, limit);
   }
 
