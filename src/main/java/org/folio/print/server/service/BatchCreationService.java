@@ -28,7 +28,7 @@ public class BatchCreationService {
    */
   public static void process(RoutingContext ctx) {
     String tenant = ctx.request().getHeader(XOkapiHeaders.TENANT);
-    LOGGER.debug("process:: tenant " + tenant);
+    LOGGER.debug("process:: tenant {}", tenant);
     PrintStorage printStorage = new PrintStorage(ctx.vertx(), tenant);
     LocalDateTime localDateTime = LocalDateTime.now().with(LocalTime.MIDNIGHT);
 

@@ -18,6 +18,9 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 public class PdfService {
   private static final Logger LOGGER = LogManager.getLogger(PdfService.class);
 
+  private PdfService() {
+  }
+
   /**
    * Create PDF content from HTML input.
    * @param htmlContent HTML input
@@ -28,7 +31,7 @@ public class PdfService {
       try (PDDocument document = new PDDocument();
            ByteArrayOutputStream os = new ByteArrayOutputStream()) {
         htmlContent = "<div>" + htmlContent + "</div>";
-        htmlContent = htmlContent.replaceAll("<br>", "<br/>");
+        htmlContent = htmlContent.replace("<br>", "<br/>");
         PDPage page = new PDPage(PDRectangle.A4);
         document.addPage(page);
         ITextRenderer renderer = new ITextRenderer();
@@ -49,22 +52,24 @@ public class PdfService {
    * @return Byte array of combined PDF file
    */
   public static byte[] combinePdfFiles(List<PrintEntry> entries) {
-    try (ByteArrayOutputStream mergedOutputStream = new ByteArrayOutputStream()) {
-      PDFMergerUtility pdfMerger = new PDFMergerUtility();
-      entries.forEach(e -> {
-        if (e.getContent() != null && !e.getContent().isBlank()) {
-          try {
-            pdfMerger.addSource(new ByteArrayInputStream(Hex.decodeHex(e.getContent())));
-          } catch (IOException ex) {
-            LOGGER.error("Failed to merge entry: " + e.getId(), ex);
+    if (!entries.isEmpty()) {
+      try (ByteArrayOutputStream mergedOutputStream = new ByteArrayOutputStream()) {
+        PDFMergerUtility pdfMerger = new PDFMergerUtility();
+        entries.forEach(e -> {
+          if (e.getContent() != null && !e.getContent().isBlank()) {
+            try {
+              pdfMerger.addSource(new ByteArrayInputStream(Hex.decodeHex(e.getContent())));
+            } catch (IOException ex) {
+              LOGGER.error("Failed to merge entry: " + e.getId(), ex);
+            }
           }
-        }
-      });
-      pdfMerger.setDestinationStream(mergedOutputStream);
-      pdfMerger.mergeDocuments(null);
-      return mergedOutputStream.toByteArray();
-    } catch (IOException e) {
-      LOGGER.error("Error merging PDFs", e);
+        });
+        pdfMerger.setDestinationStream(mergedOutputStream);
+        pdfMerger.mergeDocuments(null);
+        return mergedOutputStream.toByteArray();
+      } catch (IOException e) {
+        LOGGER.error("Error merging PDFs", e);
+      }
     }
     return  new byte[0];
   }
