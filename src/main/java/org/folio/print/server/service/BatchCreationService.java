@@ -30,7 +30,7 @@ public class BatchCreationService {
     String tenant = ctx.request().getHeader(XOkapiHeaders.TENANT);
     LOGGER.debug("process:: tenant {}", tenant);
     PrintStorage printStorage = new PrintStorage(ctx.vertx(), tenant);
-    LocalDateTime localDateTime = LocalDateTime.now().with(LocalTime.MIDNIGHT);
+    LocalDateTime localDateTime = LocalDateTime.now().minusDays(1).minusMinutes(5);
 
     printStorage.getEntriesByQuery("type=\"SINGLE\" and created > " + localDateTime
                     + " sortby sortingField created", 0, MAX_COUNT_IN_BATCH)
