@@ -52,6 +52,18 @@
         },
         {
           "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/print/entries",
+          "permissionsRequired": [
+            "mod-batch-print.entries.item.delete"
+          ],
+          "permissionsDesired": [
+            "mod-batch-print.print.write"
+          ]
+        },
+        {
+          "methods": [
             "GET"
           ],
           "pathPattern": "/print/entries/{id}",
